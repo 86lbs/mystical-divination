@@ -187,12 +187,16 @@ export default function Home() {
   const [pendingAIType, setPendingAIType] = useState<'iching' | 'tarot' | 'book' | null>(null)
   const [pendingAIData, setPendingAIData] = useState<any>(null)
 
-  // AI服务列表 - 只包含支持URL参数搜索的服务
-  const aiServices = [
-    { name: '秘塔AI搜索', url: 'https://metaso.cn/?q=', icon: '🔮', color: 'from-purple-500 to-indigo-500', description: '无广告，直达结果' },
-    { name: 'Perplexity', url: 'https://www.perplexity.ai/search/new?q=', icon: '🌐', color: 'from-cyan-500 to-blue-500', description: '国际AI搜索' },
-    { name: '纳米AI搜索', url: 'https://so.n.cn/?q=', icon: '✨', color: 'from-orange-500 to-red-500', description: '360出品' },
-    { name: '天工AI搜索', url: 'https://search.tiangong.cn/?q=', icon: '☀️', color: 'from-amber-500 to-yellow-500', description: '昆仑万维' },
+  // 搜索服务列表 - AI搜索 + 经典搜索引擎
+  const searchServices = [
+    // AI搜索
+    { name: '秘塔AI搜索', url: 'https://metaso.cn/?q=', icon: '🔮', color: 'from-purple-500 to-indigo-500', description: '无广告，直达结果', type: 'ai' },
+    { name: 'Perplexity', url: 'https://www.perplexity.ai/search/new?q=', icon: '🌐', color: 'from-cyan-500 to-blue-500', description: '国际AI搜索', type: 'ai' },
+    { name: '纳米AI搜索', url: 'https://so.n.cn/?q=', icon: '✨', color: 'from-orange-500 to-red-500', description: '360出品', type: 'ai' },
+    // 经典搜索引擎
+    { name: '百度', url: 'https://www.baidu.com/s?wd=', icon: '🔍', color: 'from-blue-500 to-blue-600', description: '百度一下', type: 'classic' },
+    { name: 'Google', url: 'https://www.google.com/search?q=', icon: '🔎', color: 'from-red-500 via-yellow-500 to-green-500', description: '谷歌搜索', type: 'classic' },
+    { name: 'Bing', url: 'https://www.bing.com/search?q=', icon: '🅱️', color: 'from-teal-500 to-cyan-500', description: '必应搜索', type: 'classic' },
   ]
 
   // 初始化塔罗牌
@@ -275,8 +279,8 @@ export default function Home() {
     setShowAISelector(true)
   }
 
-  // 选择AI服务并跳转
-  const openAIService = (service: typeof aiServices[0]) => {
+  // 选择搜索服务并跳转
+  const openSearchService = (service: typeof searchServices[0]) => {
     const url = service.url + encodeURIComponent(aiSearchQuery)
     window.open(url, '_blank')
     setShowAISelector(false)
@@ -410,7 +414,7 @@ export default function Home() {
                           onClick={() => getAIExplanation('iching', ichingResult)}
                           className="bg-gradient-to-r from-purple-500 to-indigo-500 hover:from-purple-600 hover:to-indigo-600 text-white"
                         >
-                          ✨ AI解读
+                          ✨ 解读
                         </Button>
                       </div>
                     </div>
@@ -471,7 +475,7 @@ export default function Home() {
                         onClick={() => getAIExplanation('book', { question: bookQuestion, answer: bookAnswer })}
                         className="bg-gradient-to-r from-purple-500 to-indigo-500 hover:from-purple-600 hover:to-indigo-600 text-white"
                       >
-                        ✨ AI解读
+                        ✨ 解读
                       </Button>
                     </div>
                   )}
@@ -581,13 +585,13 @@ export default function Home() {
                       </div>
                     </div>
 
-                    {/* AI解读按钮 */}
+                    {/* 解读按钮 */}
                     <div className="flex justify-center mt-4">
                       <Button 
                         onClick={() => getAIExplanation('tarot', selectedCards)}
                         className="bg-gradient-to-r from-purple-500 to-indigo-500 hover:from-purple-600 hover:to-indigo-600 text-white"
                       >
-                        ✨ AI大师解读
+                        ✨ 解读
                       </Button>
                     </div>
 
@@ -641,35 +645,57 @@ export default function Home() {
         </DialogContent>
       </Dialog>
 
-      {/* AI服务选择对话框 */}
+      {/* 搜索服务选择对话框 */}
       <Dialog open={showAISelector} onOpenChange={setShowAISelector}>
         <DialogContent className="bg-gradient-to-br from-purple-900 to-indigo-900 border-amber-500/30 text-purple-100 max-w-md">
           <DialogHeader>
             <DialogTitle className="text-amber-200 text-2xl flex items-center gap-2">
-              ✨ 选择AI服务
+              ✨ 选择搜索服务
             </DialogTitle>
           </DialogHeader>
           <div className="space-y-3 mt-2">
             <p className="text-purple-200 text-sm mb-4">
               搜索内容：{aiSearchQuery}
             </p>
-            <div className="grid grid-cols-1 gap-3">
-              {aiServices.map((service) => (
-                <button
-                  key={service.name}
-                  onClick={() => openAIService(service)}
-                  className={`flex items-center gap-4 p-4 rounded-xl bg-gradient-to-r ${service.color} hover:opacity-90 transition-all duration-300 hover:scale-[1.02] text-white text-left`}
-                >
-                  <span className="text-3xl">{service.icon}</span>
-                  <div className="flex-1">
-                    <div className="font-bold text-lg">{service.name}</div>
-                    <div className="text-white/80 text-sm">{service.description}</div>
-                  </div>
-                  <svg className="w-5 h-5 opacity-70" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                  </svg>
-                </button>
-              ))}
+            
+            {/* AI搜索 */}
+            <div className="mb-2">
+              <div className="text-purple-300 text-xs mb-2 uppercase tracking-wider">AI 搜索</div>
+              <div className="space-y-2">
+                {searchServices.filter(s => s.type === 'ai').map((service) => (
+                  <button
+                    key={service.name}
+                    onClick={() => openSearchService(service)}
+                    className={`w-full flex items-center gap-4 p-3 rounded-xl bg-gradient-to-r ${service.color} hover:opacity-90 transition-all duration-300 hover:scale-[1.02] text-white text-left`}
+                  >
+                    <span className="text-2xl">{service.icon}</span>
+                    <div className="flex-1">
+                      <div className="font-bold">{service.name}</div>
+                      <div className="text-white/80 text-xs">{service.description}</div>
+                    </div>
+                    <svg className="w-4 h-4 opacity-70" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                    </svg>
+                  </button>
+                ))}
+              </div>
+            </div>
+            
+            {/* 经典搜索引擎 */}
+            <div>
+              <div className="text-purple-300 text-xs mb-2 uppercase tracking-wider">经典搜索</div>
+              <div className="grid grid-cols-3 gap-2">
+                {searchServices.filter(s => s.type === 'classic').map((service) => (
+                  <button
+                    key={service.name}
+                    onClick={() => openSearchService(service)}
+                    className={`flex flex-col items-center gap-1 p-3 rounded-xl bg-gradient-to-r ${service.color} hover:opacity-90 transition-all duration-300 hover:scale-105 text-white`}
+                  >
+                    <span className="text-xl">{service.icon}</span>
+                    <span className="text-sm font-medium">{service.name}</span>
+                  </button>
+                ))}
+              </div>
             </div>
           </div>
         </DialogContent>
