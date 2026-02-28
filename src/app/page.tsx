@@ -330,10 +330,23 @@ export default function Home() {
                 {/* 卦象显示 */}
                 <div className="flex flex-col items-center justify-center min-h-[200px]">
                   {ichingLines.length > 0 && (
-                    <div className="text-4xl md:text-6xl font-mono text-amber-300 space-y-2 mb-4 animate-pulse">
+                    <div className="flex flex-col items-center mb-6">
                       {ichingLines.map((line, i) => (
-                        <div key={i} className="transition-all duration-300" style={{ animationDelay: `${i * 0.1}s` }}>
-                          {line}
+                        <div 
+                          key={i} 
+                          className="flex items-center justify-center transition-all duration-300"
+                          style={{ animationDelay: `${i * 0.1}s` }}
+                        >
+                          {line === '—' ? (
+                            // 阳爻 - 实线
+                            <div className="w-24 md:w-32 h-3 md:h-4 bg-amber-400 rounded-sm my-1 animate-pulse shadow-lg shadow-amber-400/50" />
+                          ) : (
+                            // 阴爻 - 断线
+                            <div className="flex gap-2 md:gap-3 my-1 animate-pulse">
+                              <div className="w-10 md:w-14 h-3 md:h-4 bg-amber-400 rounded-sm shadow-lg shadow-amber-400/50" />
+                              <div className="w-10 md:w-14 h-3 md:h-4 bg-amber-400 rounded-sm shadow-lg shadow-amber-400/50" />
+                            </div>
+                          )}
                         </div>
                       ))}
                     </div>
