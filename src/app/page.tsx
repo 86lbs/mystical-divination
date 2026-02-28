@@ -180,11 +180,6 @@ export default function Home() {
   const [showIchingDetail, setShowIchingDetail] = useState(false)
   const [showTarotDetail, setShowTarotDetail] = useState(false)
   const [selectedTarotCard, setSelectedTarotCard] = useState<typeof tarotCards[0] | null>(null)
-  
-  // AI解释状态
-  const [aiExplanation, setAiExplanation] = useState('')
-  const [isLoadingAI, setIsLoadingAI] = useState(false)
-  const [showAIExplanation, setShowAIExplanation] = useState(false)
 
   // 初始化塔罗牌
   useEffect(() => {
@@ -249,114 +244,20 @@ export default function Home() {
     setShuffledCards([...tarotCards].sort(() => Math.random() - 0.5))
   }
 
-  // AI解释功能 - 使用免费AI API
-  const getAIExplanation = async (type: 'iching' | 'tarot' | 'book', data: any) => {
-    setIsLoadingAI(true)
-    setShowAIExplanation(true)
-    setAiExplanation('')
-
-    let prompt = ''
+  // AI解释功能 - 跳转到秘塔AI搜索
+  const getAIExplanation = (type: 'iching' | 'tarot' | 'book', data: any) => {
+    let searchQuery = ''
     if (type === 'iching') {
-      prompt = `作为一位精通周易的占卜大师，请为「${data.name}卦」给出详细的解读和建议。
-
-卦辞：${data.meaning}
-
-请从以下几个方面给出指导：
-1. 整体运势分析
-2. 事业/学业建议
-3. 感情/人际关系建议
-4. 注意事项
-5. 行动建议
-
-请用温暖、鼓励的语气，给出具体可行的建议（200字以内）：`
+      searchQuery = `周易${data.name}卦详解 运势解读 人生建议`
     } else if (type === 'tarot') {
-      prompt = `作为一位塔罗牌占卜大师，请为以下三张牌给出综合解读：
-
-过去：${data[0]?.name} - ${data[0]?.meaning}
-现在：${data[1]?.name} - ${data[1]?.meaning}
-未来：${data[2]?.name} - ${data[2]?.meaning}
-
-请给出：
-1. 整体故事线解读
-2. 当前处境分析
-3. 未来发展趋势
-4. 建议与指引
-
-请用温暖、鼓励的语气，给出具体可行的建议（200字以内）：`
+      searchQuery = `塔罗牌 ${data[0]?.name} ${data[1]?.name} ${data[2]?.name} 组合解读 过去现在未来`
     } else if (type === 'book') {
-      prompt = `作为答案之书的守护者，用户的问题是：「${data.question}」
-答案之书的回答是：「${data.answer}」
-
-请结合问题和答案，给出一段温暖、有启发性的解读和建议（100字以内）：`
+      searchQuery = `${data.answer} 人生启示 哲学意义`
     }
-
-    try {
-      // 使用免费的AI API - 通过公开的免费服务
-      const response = await fetch('https://api.openai-proxy.org/v1/chat/completions', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          model: 'gpt-3.5-turbo',
-          messages: [
-            { role: 'system', content: '你是一位神秘而智慧的占卜大师，擅长用温暖、鼓励的语言给人指引。' },
-            { role: 'user', content: prompt }
-          ],
-          max_tokens: 500,
-          temperature: 0.8
-        })
-      })
-
-      if (!response.ok) {
-        throw new Error('API请求失败')
-      }
-
-      const result = await response.json()
-      const explanation = result.choices?.[0]?.message?.content || '无法获取AI解释，请稍后再试'
-      
-      // 逐字显示效果
-      let index = 0
-      const typeWriter = setInterval(() => {
-        if (index < explanation.length) {
-          setAiExplanation(explanation.slice(0, index + 1))
-          index++
-        } else {
-          clearInterval(typeWriter)
-          setIsLoadingAI(false)
-        }
-      }, 30)
-    } catch (error) {
-      // 备用方案：使用本地生成的解释
-      const fallbackExplanation = generateLocalExplanation(type, data)
-      let index = 0
-      const typeWriter = setInterval(() => {
-        if (index < fallbackExplanation.length) {
-          setAiExplanation(fallbackExplanation.slice(0, index + 1))
-          index++
-        } else {
-          clearInterval(typeWriter)
-          setIsLoadingAI(false)
-        }
-      }, 30)
-    }
-  }
-
-  // 本地备用解释生成
-  const generateLocalExplanation = (type: string, data: any): string => {
-    if (type === 'iching') {
-      const advices = [
-        '此刻正是蓄势待发之时，保持内心的平静与专注，好运自然会降临。',
-        '易经告诉我们要顺应自然规律，不要强求，顺其自然方能水到渠成。',
-        '此卦暗示着转机即将到来，保持积极乐观的心态，勇敢面对挑战。',
-        '古人云：天行健，君子以自强不息。保持坚韧，终将迎来光明。'
-      ]
-      return `「${data.name}卦」启示我们：${advices[Math.floor(Math.random() * advices.length)]}建议近期多关注内心感受，与亲近之人多交流，会有意想不到的收获。`
-    } else if (type === 'tarot') {
-      return `塔罗牌揭示了您生命旅程的轨迹：过去的经历塑造了现在的您，而现在的选择将决定未来的方向。建议保持开放的心态，相信自己的直觉，勇敢地迈出下一步。宇宙正在为您安排美好的事物。`
-    } else {
-      return `答案之书为您指引：${data.answer}。这个答案提醒您，内心的声音往往比外界的喧嚣更值得倾听。相信自己的判断，勇敢前行。`
-    }
+    
+    // 跳转到秘塔AI搜索
+    const url = `https://metaso.cn/search/${encodeURIComponent(searchQuery)}`
+    window.open(url, '_blank')
   }
 
   return (
@@ -504,29 +405,6 @@ export default function Home() {
                     {isAnimating ? '占卦中...' : '开始占卦'}
                   </Button>
                 </div>
-
-                {/* AI解释显示区域 */}
-                {showAIExplanation && (
-                  <div className="mt-6 p-4 bg-gradient-to-br from-purple-800/50 to-indigo-800/50 rounded-xl border border-purple-500/30">
-                    <div className="flex items-center gap-2 mb-3">
-                      <span className="text-2xl">🔮</span>
-                      <span className="text-amber-200 font-bold text-lg">AI 大师解读</span>
-                    </div>
-                    <div className="text-purple-100 leading-relaxed whitespace-pre-wrap">
-                      {aiExplanation}
-                      {isLoadingAI && <span className="animate-pulse">▌</span>}
-                    </div>
-                    {!isLoadingAI && aiExplanation && (
-                      <Button 
-                        onClick={() => setShowAIExplanation(false)}
-                        variant="ghost" 
-                        className="mt-3 text-purple-300 hover:text-purple-100"
-                      >
-                        关闭
-                      </Button>
-                    )}
-                  </div>
-                )}
               </CardContent>
             </Card>
           </TabsContent>
@@ -587,29 +465,6 @@ export default function Home() {
                     {isAnimating ? '寻找答案中...' : '翻开答案之书'}
                   </Button>
                 </div>
-
-                {/* AI解释显示区域 */}
-                {showAIExplanation && (
-                  <div className="mt-6 p-4 bg-gradient-to-br from-purple-800/50 to-indigo-800/50 rounded-xl border border-purple-500/30">
-                    <div className="flex items-center gap-2 mb-3">
-                      <span className="text-2xl">🔮</span>
-                      <span className="text-amber-200 font-bold text-lg">AI 大师解读</span>
-                    </div>
-                    <div className="text-purple-100 leading-relaxed whitespace-pre-wrap">
-                      {aiExplanation}
-                      {isLoadingAI && <span className="animate-pulse">▌</span>}
-                    </div>
-                    {!isLoadingAI && aiExplanation && (
-                      <Button 
-                        onClick={() => setShowAIExplanation(false)}
-                        variant="ghost" 
-                        className="mt-3 text-purple-300 hover:text-purple-100"
-                      >
-                        关闭
-                      </Button>
-                    )}
-                  </div>
-                )}
               </CardContent>
             </Card>
           </TabsContent>
@@ -723,29 +578,6 @@ export default function Home() {
                         重新占卜
                       </Button>
                     </div>
-
-                    {/* AI解释显示区域 */}
-                    {showAIExplanation && (
-                      <div className="mt-6 p-4 bg-gradient-to-br from-purple-800/50 to-indigo-800/50 rounded-xl border border-purple-500/30">
-                        <div className="flex items-center gap-2 mb-3">
-                          <span className="text-2xl">🔮</span>
-                          <span className="text-amber-200 font-bold text-lg">AI 大师解读</span>
-                        </div>
-                        <div className="text-purple-100 leading-relaxed whitespace-pre-wrap">
-                          {aiExplanation}
-                          {isLoadingAI && <span className="animate-pulse">▌</span>}
-                        </div>
-                        {!isLoadingAI && aiExplanation && (
-                          <Button 
-                            onClick={() => setShowAIExplanation(false)}
-                            variant="ghost" 
-                            className="mt-3 text-purple-300 hover:text-purple-100"
-                          >
-                            关闭
-                          </Button>
-                        )}
-                      </div>
-                    )}
                   </>
                 )}
               </CardContent>
